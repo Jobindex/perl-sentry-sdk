@@ -42,7 +42,7 @@ sub register ($self, $app, $conf) {
         try {
           $next->();
         } catch {
-          Sentry::SDK->capture_exception($_, { level => Sentry::Severity->Fatal });
+          Sentry::SDK->capture_exception($_, { level => Sentry::Severity->Fatal, logger => 'mojo' });
           $c->reply->exception($_)
         } finally {
           my $status = $c->res->code;
