@@ -1,8 +1,10 @@
 package Mojolicious::Plugin::SentrySDK;
 use Mojo::Base 'Mojolicious::Plugin', -signatures;
 
+use List::Util qw(pairgrep);
 use Sentry::SDK;
 use Sentry::Severity;
+use Sentry::Util qw(stringify_ref);
 use Try::Tiny;
 
 sub register ($self, $app, $conf) {
@@ -37,6 +39,13 @@ sub register ($self, $app, $conf) {
           },
         );
         $scope->set_span($transaction);
+
+        $scope->add_event_processor(sub ($event, $hint) {
+          $event->{extra}->{session} = stringify_ref($c->session);
+          my %stash = pairgrep { $a !~ /^mojo\./ } $c->stash->%*;
+          $event->{extra}->{stash} = stringify_ref(\%stash);
+          return $event;
+        });
 
         try {
           $next->();
