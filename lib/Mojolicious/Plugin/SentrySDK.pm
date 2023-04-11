@@ -1,6 +1,7 @@
 package Mojolicious::Plugin::SentrySDK;
 use Mojo::Base 'Mojolicious::Plugin', -signatures;
 
+use Mojolicious;
 use List::Util qw(pairgrep);
 use Sentry::SDK;
 use Sentry::Severity;
@@ -44,6 +45,9 @@ sub register ($self, $app, $conf) {
           $event->{extra}->{session} = stringify_ref($c->session);
           my %stash = pairgrep { $a !~ /^mojo\./ } $c->stash->%*;
           $event->{extra}->{stash} = stringify_ref(\%stash);
+
+          my $modules = $event->{modules} //= {};
+          $modules->{Mojolicious} = $Mojolicious::VERSION;
           return $event;
         });
 
